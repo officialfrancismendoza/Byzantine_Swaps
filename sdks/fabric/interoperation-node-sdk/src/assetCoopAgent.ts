@@ -6,20 +6,62 @@ import assetLocksPb from "@hyperledger-labs/weaver-protos-js/common/asset_locks_
 import { Contract, ContractListener } from "fabric-network";
 import { Hash, SHA256 } from "./HashFunctions"
 
+//Unique libraries and conditions
 import * as assetManagerHelpers from "./AssetManager";
+import * as hashFunctionsHelpers from "./HashFunctions"
 
+declare var require: any
+const { generateKeyPair } = require("crypto");
+//---------------------------------------------------------------------------------------------
 //TODO: Create class to instantiate multiple handshakes 
 class payload {
     payload: string;
     recipient: string;
     timestamp: number;
-    aID;
+    aID: Hash;
 
     constructor() {
 
     }
 }
 
+//TODO: Create class for party/counterparty
+class transactionParty {
+    name: String;
+    initialHTLCSecret: String;
+    publicKey: String;
+    privateKey: String;
+
+    constructor(inputName: string) {
+        this.name = inputName;
+
+        let randomInput = (Math.random() + 1).toString(36).substring(2);
+        this.initialHTLCSecret = crypto.createHash('sha256').update(randomInput).digest('hex');
+
+        //[!!!] TODO: Update public and private keys with rsaKeyGeneration
+        this.publicKey;
+        this.privateKey;
+    }
+
+    //Async function to generate keypair
+    rsaKeyGeneration = async (): Promise<any> => {
+        crypto.generateKeyPair('rsa', {
+          modulusLength: 1024,
+          publicKeyEncoding: {
+            type: 'spki',
+            format: 'pem'
+          },
+          privateKeyEncoding: {
+            type: 'pkcs8',
+            format: 'pem'
+          }
+        }, (err: Error | null, publicKey: string, privateKey: string) => {
+          if (err) throw err
+          return { publicKey, privateKey }
+        })
+      }
+}
+//---------------------------------------------------------------------------------------------
 /* 
     Struct representing payload cosigned by party & counterparty 
     to initiate Byzantine Swap
@@ -38,59 +80,9 @@ function initiateHandshake(recipientAddress) {
     return handshakePayload;
 }
 
-/*
-    Imported methods for Asset exchange, lock, and claim serialization,
-    originally from AssetManager.ts
-*/
-// Create an asset exchange agreement structure
-function createAssetExchangeAgreementSerialized(assetType, assetID, recipientECert, lockerECert)
-{
-    const assetExchangeAgreement = new assetLocksPb.AssetExchangeAgreement();
-    assetExchangeAgreement.setType(assetType);
-    assetExchangeAgreement.setId(assetID);
-    assetExchangeAgreement.setRecipient(recipientECert);
-    assetExchangeAgreement.setLocker(lockerECert);
-    return Buffer.from(assetExchangeAgreement.serializeBinary()).toString('base64');
-}
+//---------------------------------------------------------------------------------------------
+//TODO: Generate secret (S) for party
 
-// Create a fungible asset exchange agreement structure
-function createFungibleAssetExchangeAgreementSerialized(assetType, numUnits, recipientECert, lockerECert)
-{
-    const assetExchangeAgreement = new assetLocksPb.FungibleAssetExchangeAgreement();
-    assetExchangeAgreement.setType(assetType);
-    assetExchangeAgreement.setNumunits(numUnits);
-    assetExchangeAgreement.setRecipient(recipientECert);
-    assetExchangeAgreement.setLocker(lockerECert);
-    return Buffer.from(assetExchangeAgreement.serializeBinary()).toString('base64');
-}
-
-// Create an asset lock structure
-function createAssetLockInfoSerialized(hash, expiryTimeSecs)
-{
-    const lockInfoHTLC = new assetLocksPb.AssetLockHTLC();
-    lockInfoHTLC.setHashmechanism(hash.HASH_MECHANISM);
-    lockInfoHTLC.setHashbase64(Buffer.from(hash.getSerializedHashBase64()));
-    lockInfoHTLC.setExpirytimesecs(expiryTimeSecs);
-    lockInfoHTLC.setTimespec(assetLocksPb.AssetLockHTLC.TimeSpec.EPOCH)
-    const lockInfoHTLCSerialized = lockInfoHTLC.serializeBinary();
-    const lockInfo = new assetLocksPb.AssetLock();
-    lockInfo.setLockmechanism(assetLocksPb.LockMechanism.HTLC);
-    lockInfo.setLockinfo(lockInfoHTLCSerialized);
-    return Buffer.from(lockInfo.serializeBinary()).toString('base64');
-}
-
-// Create an asset claim structure
-function createAssetClaimInfoSerialized(hash)
-{
-    const claimInfoHTLC = new assetLocksPb.AssetClaimHTLC();
-    claimInfoHTLC.setHashmechanism(hash.HASH_MECHANISM);
-    claimInfoHTLC.setHashpreimagebase64(Buffer.from(hash.getSerializedPreimageBase64()));
-    const claimInfoHTLCSerialized = claimInfoHTLC.serializeBinary();
-    const claimInfo = new assetLocksPb.AssetClaim();
-    claimInfo.setLockmechanism(assetLocksPb.LockMechanism.HTLC);
-    claimInfo.setClaiminfo(claimInfoHTLCSerialized);
-    return Buffer.from(claimInfo.serializeBinary()).toString('base64');
-}
 
 //TODO: Locks asset (party starts out with secret)
 
