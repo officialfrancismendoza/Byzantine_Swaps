@@ -11,6 +11,7 @@ class payload {
     payload: string;
     recipient: string;
     timestamp: number;
+    aID;
 
     constructor() {
 
@@ -34,3 +35,62 @@ function initiateHandshake(recipientAddress) {
 
     return handshakePayload;
 }
+
+/*
+    Imported methods for Asset exchange, lock, and claim serialization,
+    originally from AssetManager.ts
+*/
+// Create an asset exchange agreement structure
+function createAssetExchangeAgreementSerialized(assetType, assetID, recipientECert, lockerECert)
+{
+    const assetExchangeAgreement = new assetLocksPb.AssetExchangeAgreement();
+    assetExchangeAgreement.setType(assetType);
+    assetExchangeAgreement.setId(assetID);
+    assetExchangeAgreement.setRecipient(recipientECert);
+    assetExchangeAgreement.setLocker(lockerECert);
+    return Buffer.from(assetExchangeAgreement.serializeBinary()).toString('base64');
+}
+
+// Create a fungible asset exchange agreement structure
+function createFungibleAssetExchangeAgreementSerialized(assetType, numUnits, recipientECert, lockerECert)
+{
+    const assetExchangeAgreement = new assetLocksPb.FungibleAssetExchangeAgreement();
+    assetExchangeAgreement.setType(assetType);
+    assetExchangeAgreement.setNumunits(numUnits);
+    assetExchangeAgreement.setRecipient(recipientECert);
+    assetExchangeAgreement.setLocker(lockerECert);
+    return Buffer.from(assetExchangeAgreement.serializeBinary()).toString('base64');
+}
+
+// Create an asset lock structure
+function createAssetLockInfoSerialized(hash, expiryTimeSecs)
+{
+    const lockInfoHTLC = new assetLocksPb.AssetLockHTLC();
+    lockInfoHTLC.setHashmechanism(hash.HASH_MECHANISM);
+    lockInfoHTLC.setHashbase64(Buffer.from(hash.getSerializedHashBase64()));
+    lockInfoHTLC.setExpirytimesecs(expiryTimeSecs);
+    lockInfoHTLC.setTimespec(assetLocksPb.AssetLockHTLC.TimeSpec.EPOCH)
+    const lockInfoHTLCSerialized = lockInfoHTLC.serializeBinary();
+    const lockInfo = new assetLocksPb.AssetLock();
+    lockInfo.setLockmechanism(assetLocksPb.LockMechanism.HTLC);
+    lockInfo.setLockinfo(lockInfoHTLCSerialized);
+    return Buffer.from(lockInfo.serializeBinary()).toString('base64');
+}
+
+// Create an asset claim structure
+function createAssetClaimInfoSerialized(hash)
+{
+    const claimInfoHTLC = new assetLocksPb.AssetClaimHTLC();
+    claimInfoHTLC.setHashmechanism(hash.HASH_MECHANISM);
+    claimInfoHTLC.setHashpreimagebase64(Buffer.from(hash.getSerializedPreimageBase64()));
+    const claimInfoHTLCSerialized = claimInfoHTLC.serializeBinary();
+    const claimInfo = new assetLocksPb.AssetClaim();
+    claimInfo.setLockmechanism(assetLocksPb.LockMechanism.HTLC);
+    claimInfo.setClaiminfo(claimInfoHTLCSerialized);
+    return Buffer.from(claimInfo.serializeBinary()).toString('base64');
+}
+
+
+//TODO: Locks asset (party starts out with secret)
+
+//TODO: Locks asset (counterparty does NOT start with secret)
