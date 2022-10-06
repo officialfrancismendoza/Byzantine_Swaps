@@ -6,6 +6,8 @@ import assetLocksPb from "@hyperledger-labs/weaver-protos-js/common/asset_locks_
 import { Contract, ContractListener } from "fabric-network";
 import { Hash, SHA256 } from "./HashFunctions"
 
+import * as assetManagerHelpers from "./AssetManager";
+
 //TODO: Create class to instantiate multiple handshakes 
 class payload {
     payload: string;
@@ -89,7 +91,6 @@ function createAssetClaimInfoSerialized(hash)
     claimInfo.setClaiminfo(claimInfoHTLCSerialized);
     return Buffer.from(claimInfo.serializeBinary()).toString('base64');
 }
-
 
 //TODO: Locks asset (party starts out with secret)
 
