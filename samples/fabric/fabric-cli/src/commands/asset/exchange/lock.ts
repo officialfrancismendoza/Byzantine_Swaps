@@ -204,3 +204,9 @@ const command: GluegunCommand = {
 
 
 module.exports = command
+
+export {
+  GluegunCommand,
+  getNetworkConfig,
+  fabricHelper
+}
