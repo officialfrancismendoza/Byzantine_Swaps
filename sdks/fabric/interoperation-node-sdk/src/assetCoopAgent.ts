@@ -13,15 +13,37 @@ import * as hashFunctionsHelpers from "./HashFunctions"
 declare var require: any
 const { generateKeyPair } = require("crypto");
 //---------------------------------------------------------------------------------------------
-//TODO: Create class to instantiate multiple handshakes 
+//TODO: REDO payload as a protobuf structure (L36 in AssetManager.ts)
+//TODO: Take inspiration from createFungibleAssetExchangeAgreementSerialized function on how to populate protobuf
 class payload {
-    payload: string;
+    payloadSharedSecret: string;
     recipient: string;
+    //TODO: Refer to recipientECert (address) and how it's being parsed
+
+    //lock.ts within samples. There is a wallet for each user (recipient/locker).
+    //Fetch certificate from recipientCert (L164 in lock.ts). String in base64 data type.
+
+    /*
+        Define a "struct" and then a function to instantiate the struct, EXACTLY like
+        asset_locks.proto AssetExchangeAgreement. 
+
+        [!!!] TODO: Can define this within asset_locks.proto
+        Revisit detailed documentation
+    */
+
     timestamp: number;
-    aID: Hash;
+    transactionID: string;
 
-    constructor() {
+    constructor(samplePayload: string, sampleRecipient: string, sampleTimestamp: number) {
+        //TODO: New file in CLI, "prepare.ts". Used to generate payloadSharedSecret
+        this.payloadSharedSecret = samplePayload;
+        this.recipient = sampleRecipient;
+        this.timestamp = sampleTimestamp;
 
+        let hashInstance: Hash;
+        hashInstance.generateRandomPreimage(50);
+        this.transactionID = hashInstance.getSerializedPreimageBase64();
+        //TODO: transactionID is a hash. Generated locally, use the same preimage code
     }
 }
 
@@ -35,6 +57,7 @@ class transactionParty {
     constructor(inputName: string) {
         this.name = inputName;
 
+        //TODO: Generate secret (S) for party
         let randomInput = (Math.random() + 1).toString(36).substring(2);
         this.initialHTLCSecret = crypto.createHash('sha256').update(randomInput).digest('hex');
 
@@ -81,9 +104,6 @@ function initiateHandshake(recipientAddress) {
 }
 
 //---------------------------------------------------------------------------------------------
-//TODO: Generate secret (S) for party
-
-
 //TODO: Locks asset (party starts out with secret)
 
 //TODO: Locks asset (counterparty does NOT start with secret)
