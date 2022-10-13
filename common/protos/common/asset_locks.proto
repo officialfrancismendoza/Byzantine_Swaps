@@ -67,3 +67,10 @@ message FungibleAssetContractHTLC {
   AssetLockHTLC lock = 3;
   AssetClaimHTLC claim = 4;
 }
+
+message byzantineSwapHandshakePayload {
+  string payloadSharedSecret = 1;
+  string recipient = 2;
+  number timestamp = 3;
+  string transactionID = 4;
+}
