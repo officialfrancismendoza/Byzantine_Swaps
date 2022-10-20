@@ -10,11 +10,12 @@ import { Hash, SHA256 } from "./HashFunctions"
 import * as assetManagerHelpers from "./AssetManager";
 import * as hashFunctionsHelpers from "./HashFunctions";
 import * as lockHelpers from "samples/fabric/fabric-cli/src/commands/asset/exchange/lock";
+import { generateHandshakeSharedSecret } from "samples/fabric/fabric-cli/src/prepare";
 
 declare var require: any
 const { generateKeyPair } = require("crypto");
 //---------------------------------------------------------------------------------------------
-const netConfig = lockHelpers.getNetworkConfig(options['target-network'])
+const netConfig = getNetworkConfig(options['target-network'])
 if (!netConfig.connProfilePath || !netConfig.channelName || !netConfig.chaincode) {
   print.error(
     `Please use a valid --target-network. No valid environment found for ${options['target-network']} `
