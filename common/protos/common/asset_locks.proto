@@ -71,6 +71,6 @@ message FungibleAssetContractHTLC {
 message byzantineSwapHandshakePayload {
   string payloadSharedSecret = 1;
   string recipient = 2;
-  number timestamp = 3;
+  uint64 timestamp = 3;
   string transactionID = 4;
 }
