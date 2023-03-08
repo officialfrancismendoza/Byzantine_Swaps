@@ -83,6 +83,7 @@ Prominent features in our future roadmap are:
 
 ## Other Contributors
 - https://github.com/ghoshbishakh
+- https://github.com/officialfrancismendoza
 
 ## Initial Committers
 - https://github.com/ermyas
